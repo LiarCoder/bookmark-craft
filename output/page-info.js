@@ -1,1 +1,0 @@
-javascript:(function(){function n(){const n=document.title,t=window.location.href,o=window.location.hostname,e=document.images.length,c=document.links.length,i=document.scripts.length;alert(`页面信息:\n标题: ${n}\nURL: ${t}\n域名: ${o}\n图片数量: ${e}\n链接数量: ${c}\n脚本数量: ${i}`)}n();})();

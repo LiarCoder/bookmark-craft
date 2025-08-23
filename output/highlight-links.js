@@ -1,1 +1,0 @@
-javascript:(function(){function e(){const e=document.querySelectorAll("a");e.forEach((e,l)=>{e.style.backgroundColor="yellow",e.style.border="2px solid red",e.title=`Link ${l+1}: ${e.href}`}),alert(`Highlighted ${e.length} links on this page!`)}e();})();
