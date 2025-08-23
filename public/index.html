@@ -87,24 +87,15 @@
       border-radius: 8px;
       padding: 20px;
       transition: all 0.3s ease;
-      cursor: grab;
     }
 
     .bookmarklet-card:hover {
       border-color: #4facfe;
       box-shadow: 0 5px 15px rgba(79, 172, 254, 0.2);
-      transform: translateY(-2px);
     }
 
     .bookmarklet-card:active {
       cursor: grabbing;
-    }
-
-    .bookmarklet-name {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 10px;
     }
 
     .bookmarklet-content {
@@ -128,7 +119,6 @@
       display: inline-block;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      text-decoration: none;
       padding: 10px 20px;
       border-radius: 6px;
       font-size: 0.9rem;
@@ -138,18 +128,17 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      cursor: grab;
     }
 
     .bookmarklet-link:hover {
       background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-      transform: scale(1.02);
     }
 
     .drag-hint {
       margin-top: 10px;
       font-size: 0.8rem;
       color: #6c757d;
-      font-style: italic;
     }
 
     .empty-state {
@@ -345,26 +334,21 @@
         const displayName = formatBookmarkletName(bookmarklet.name);
 
         return `
-                    <div class="bookmarklet-card" draggable="true" data-content="${escapeHtml(bookmarklet.content)}">
-                        <div class="bookmarklet-name">${escapeHtml(displayName)}</div>
+                    <div class="bookmarklet-card" data-content="${escapeHtml(bookmarklet.content)}">
                         <div class="bookmarklet-content">
                             <a href="${escapeHtml(bookmarklet.content)}" 
-                              class="bookmarklet-link" 
-                              draggable="false"
+                              class="bookmarklet-link"
                               onclick="return false;">
                                 ${escapeHtml(displayName)}
                             </a>
                             <button class="bookmarklet-execute" onclick="${escapeHtml(bookmarklet.content.replace('javascript:', ''))}">执行</button>
                         </div>
                         <div class="drag-hint">
-                            💡 拖拽此卡片到书签栏，或右键链接添加到书签
+                            ☝ 拖拽链接到书签栏 💡
                         </div>
                     </div>
                 `;
       }).join('');
-
-      // 为每个卡片添加拖拽事件监听器
-      setupDragAndDrop();
     }
 
     /**
@@ -383,41 +367,6 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
-    }
-
-    /**
-     * 设置拖拽功能
-     */
-    function setupDragAndDrop() {
-      const cards = document.querySelectorAll('.bookmarklet-card');
-
-      cards.forEach(card => {
-        card.addEventListener('dragstart', (e) => {
-          const content = card.dataset.content;
-          const name = card.querySelector('.bookmarklet-name').textContent;
-
-          // 设置拖拽数据
-          e.dataTransfer.setData('text/plain', content);
-          e.dataTransfer.setData('text/uri-list', content);
-          e.dataTransfer.setData('text/html', `<a href="${escapeHtml(content)}">${escapeHtml(name)}</a>`);
-
-          // 设置拖拽效果
-          e.dataTransfer.effectAllowed = 'copy';
-
-          // 添加拖拽时的视觉反馈
-          card.style.opacity = '0.5';
-        });
-
-        card.addEventListener('dragend', (e) => {
-          // 恢复透明度
-          card.style.opacity = '1';
-        });
-
-        // 添加右键菜单提示
-        card.addEventListener('contextmenu', (e) => {
-          // 不阻止默认行为，让用户可以复制链接
-        });
-      });
     }
 
     /**
