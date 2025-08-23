@@ -9,7 +9,7 @@
 ## 现有书签列表
 
 - [测试示例书签(test-example) v1.0.0](docs/test-example.md)
-- [飞书任务跳转书签(feishu-issue-jump) v1.0.0](docs/feishu-issue-jump.md)
+- [飞书任务跳转书签(feishu-issue-jump) v1.1.0](docs/feishu-issue-jump.md)
 
 ## 目录结构
 
