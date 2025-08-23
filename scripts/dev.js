@@ -30,7 +30,8 @@ async function runBuild() {
 
     await buildBookmarklets();
 
-    console.log("✅ 构建完成！");
+    console.log(`✅ 构建完成！${new Date().toLocaleString()}`);
+    console.log(`🔗 访问 http://localhost:${PORT} 查看小书签列表`);
 
     // 通知所有 SSE 客户端构建完成
     broadcastUpdate({
