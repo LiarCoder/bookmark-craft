@@ -11,6 +11,7 @@
 - [测试示例书签(test-example) v1.0.0](docs/test-example.md)
 - [飞书任务跳转书签(feishu-issue-jump) v1.1.0](docs/feishu-issue-jump.md)
 - [元素轮廓显示书签(outline-element) v1.0.0](docs/outline-element.md)
+- [显示星号密码书签(display-asterisk-password) v1.0.0](docs/display-asterisk-password.md)
 
 ## 目录结构
 
