@@ -6,6 +6,11 @@
 
 你可以在仓库中使用 JavaScript 正常编写你想要实现的小书签的代码逻辑，然后使用压缩工具（比如 terser）将小书签的代码尽可能压缩，以确保满足小书签的代码长度限制。最后将压缩过的小书签代码打包输出到一个单文件中，并放在指定目录下。
 
+## 现有书签列表
+
+- [测试示例书签(test-example) v1.0.0](docs/test-example.md)
+- [飞书任务跳转书签(feishu-issue-jump) v1.0.0](docs/feishu-issue-jump.md)
+
 ## 目录结构
 
 目录结构如下：
