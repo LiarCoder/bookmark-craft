@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "create": "node scripts/create.js",
+    "remove": "node scripts/remove.js",
     "dev": "node scripts/dev.js",
     "build": "node scripts/build.js"
   },

@@ -89,7 +89,7 @@ const generateScriptTemplate = (chineseName) => {
   const scriptTemplate = `// @name: ${chineseName}
 
 // 在这里编写您的书签代码
-console.log('Hello from ${chineseName}!');
+alert('Hello from ${chineseName}!');
 `;
 
   // 确保目录存在
