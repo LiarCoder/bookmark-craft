@@ -104,7 +104,8 @@
       gap: 10px;
     }
 
-    .bookmarklet-execute {
+    .bookmarklet-execute,
+    .bookmarklet-copy {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
@@ -324,31 +325,105 @@
       }
     }
 
+    // 创建元素函数
+    const createElement = ({
+      parent = document.body,
+      tagName = "div",
+      text = "",
+      attributes = {},
+      children = [],
+    }) => {
+      const element = document.createElement(tagName);
+      element.innerText = text;
+      Object.keys(attributes).forEach((key) =>
+        element.setAttribute(key, attributes[key])
+      );
+      if (parent) {
+        parent.appendChild(element);
+      }
+      if (children && children.length > 0) {
+        children.forEach(child => {
+          element.appendChild(child);
+        });
+      }
+      return element;
+    };
+
     /**
      * 渲染小书签列表到页面
      */
     function renderBookmarklets() {
       const listEl = document.getElementById('bookmarklets-list');
+      // 使用文档片段批量创建元素
+      const fragment = document.createDocumentFragment();
 
-      listEl.innerHTML = bookmarklets.map(bookmarklet => {
-        const displayName = formatBookmarkletName(bookmarklet.name);
+      bookmarklets.forEach(bookmarklet => {
+        const bookmarkletCardElement = createElement({
+          parent: fragment,
+          tagName: "div",
+          attributes: {
+            class: "bookmarklet-card"
+          },
+          children: [
+            createElement({
+              tagName: "div",
+              attributes: {
+                class: "bookmarklet-content"
+              },
+              children: [
+                createElement({
+                  tagName: "a",
+                  attributes: {
+                    href: bookmarklet.content,
+                    class: "bookmarklet-link",
+                    onclick: "return false;",
+                  },
+                  text: formatBookmarkletName(bookmarklet.name)
+                }),
+                createElement({
+                  tagName: "button",
+                  attributes: {
+                    class: "bookmarklet-execute",
+                    onclick: bookmarklet.content.replace('javascript:', '')
+                  },
+                  text: "执行"
+                }),
+                createElement({
+                  tagName: "button",
+                  attributes: {
+                    class: "bookmarklet-copy",
+                    onclick: `copyToClipboard(\'${bookmarklet.content}\')`
+                  },
+                  text: "复制"
+                })
+              ]
+            }),
+            createElement({
+              tagName: "div",
+              attributes: {
+                class: "drag-hint",
+              },
+              text: "☝ 拖拽链接到书签栏 💡"
+            })
+          ]
+        });
 
-        return `
-                    <div class="bookmarklet-card" data-content="${escapeHtml(bookmarklet.content)}">
-                        <div class="bookmarklet-content">
-                            <a href="${escapeHtml(bookmarklet.content)}" 
-                              class="bookmarklet-link"
-                              onclick="return false;">
-                                ${escapeHtml(displayName)}
-                            </a>
-                            <button class="bookmarklet-execute" onclick="${escapeHtml(bookmarklet.content.replace('javascript:', ''))}">执行</button>
-                        </div>
-                        <div class="drag-hint">
-                            ☝ 拖拽链接到书签栏 💡
-                        </div>
-                    </div>
-                `;
-      }).join('');
+        fragment.appendChild(bookmarkletCardElement);
+      });
+
+      listEl.appendChild(fragment);
+    }
+
+    /**
+     * 复制文本到剪贴板
+     */
+    function copyToClipboard(content) {
+      navigator.clipboard.writeText(content).then(() => {
+        alert('复制成功');
+      }).catch((error) => {
+        console.error('复制失败:', error);
+        alert('复制失败');
+      });
     }
 
     /**
@@ -358,15 +433,6 @@
       return filename
         .replace(/[-_]/g, ' ')  // 将连字符和下划线替换为空格
         .replace(/\b\w/g, l => l.toUpperCase());  // 首字母大写
-    }
-
-    /**
-     * HTML 转义函数，防止 XSS
-     */
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     }
 
     /**
