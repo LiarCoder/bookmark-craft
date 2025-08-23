@@ -8,3 +8,7 @@ node_modules/
 
 # Temp
 /temp/
+
+# AI
+.kiro
+.cursor
