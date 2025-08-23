@@ -66,6 +66,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 app.get("/api/bookmarklets", (req, res) => {
   try {
     const outputDir = path.join(__dirname, "..", "output");
+    const scriptDir = path.join(__dirname, "..", "src", "bookmarklets");
 
     if (!fs.existsSync(outputDir)) {
       return res.json([]);
@@ -77,9 +78,13 @@ app.get("/api/bookmarklets", (req, res) => {
       .map((file) => {
         const filePath = path.join(outputDir, file);
         const content = fs.readFileSync(filePath, "utf8");
+        const scriptPath = path.join(scriptDir, file);
+        const scriptContent = fs.readFileSync(scriptPath, "utf8");
         const name = path.basename(file, ".js");
+        const chineseName = scriptContent.match(/@name: (.+)/)?.[1] || name;
 
         return {
+          chineseName: chineseName,
           name: name,
           filename: file,
           content: content.trim(),

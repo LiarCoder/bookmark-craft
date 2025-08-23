@@ -1,3 +1,5 @@
+// @name: 测试小书签示例
+
 // 测试小书签示例 - 包含 console.log 和复杂逻辑
 function testBookmarklet() {
   console.log("This console.log should be removed by Terser");

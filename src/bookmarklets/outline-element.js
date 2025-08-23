@@ -1,3 +1,5 @@
+// @name: 显示元素边框
+
 if (typeof hasOutline == "undefined") hasOutline = false;
 document.querySelectorAll("*").forEach((item) => {
   item.style.outline = hasOutline

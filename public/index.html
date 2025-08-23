@@ -98,6 +98,12 @@
       cursor: grabbing;
     }
 
+    .bookmarklet-name {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+
     .bookmarklet-content {
       display: flex;
       align-items: center;
@@ -106,7 +112,7 @@
 
     .bookmarklet-execute,
     .bookmarklet-copy {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #4a5a6a 0%, #6b7a8f 100%);
       color: white;
       border: none;
       padding: 10px 20px;
@@ -365,6 +371,13 @@
             class: "bookmarklet-card"
           },
           children: [
+            createElement({
+              tagName: "div",
+              attributes: {
+                class: "bookmarklet-name"
+              },
+              text: bookmarklet.chineseName
+            }),
             createElement({
               tagName: "div",
               attributes: {
