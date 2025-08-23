@@ -1,7 +1,7 @@
 {
-  "name": "bookmarklets",
+  "name": "bookmark-craft",
   "version": "1.0.0",
-  "description": "网页小书签代码集合。提供了一个可调试书签的网页，并且最后可以自动压缩代码并输出符合小书签格式的产物",
+  "description": "网页小书签制作工具。提供了一个可调试书签的网页，并且最后可以自动压缩代码并输出符合小书签格式的产物",
   "main": "index.js",
   "scripts": {
     "dev": "node scripts/dev.js",
