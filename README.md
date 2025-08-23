@@ -10,6 +10,7 @@
 
 - [测试示例书签(test-example) v1.0.0](docs/test-example.md)
 - [飞书任务跳转书签(feishu-issue-jump) v1.1.0](docs/feishu-issue-jump.md)
+- [元素轮廓显示书签(outline-element) v1.0.0](docs/outline-element.md)
 
 ## 目录结构
 
@@ -25,6 +26,16 @@ src/
   │     ├── bookmarklet2.js // 小书签2源码
   │     └── ...             // 其他小书签源码
   └── index.js              // 入口文件（如有需要）
+docs/
+  ├── bookmarklet1.md      // 小书签1文档
+  ├── bookmarklet2.md      // 小书签2文档
+  └── ...                   // 其他小书签文档
+scripts/
+  ├── create.js             // 创建书签脚本
+  ├── remove.js             // 删除书签脚本
+  ├── dev.js                // 开发脚本
+  ├── build.js              // 打包脚本
+  └── ...                   // 其他脚本
 output/                     // 压缩后的小书签输出目录
   ├── bookmarklet1.js       // 压缩后的小书签1
   ├── bookmarklet2.js       // 压缩后的小书签2
@@ -46,6 +57,12 @@ npm install
 
 # 开发模式（支持热更新）
 npm run dev
+
+# 创建新书签（会生成 src/bookmarklets/<name>.js 和 docs/<name>.md）
+npm run create <script-name>
+
+# 删除书签（同步删除脚本、文档与构建产物）
+npm run remove <script-name>
 
 # 打包（生成压缩后的小书签）
 npm run build
