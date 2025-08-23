@@ -107,6 +107,23 @@
       margin-bottom: 10px;
     }
 
+    .bookmarklet-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bookmarklet-execute {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      display: inline-block;
+      text-wrap: nowrap;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
     .bookmarklet-link {
       display: inline-block;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -330,12 +347,15 @@
         return `
                     <div class="bookmarklet-card" draggable="true" data-content="${escapeHtml(bookmarklet.content)}">
                         <div class="bookmarklet-name">${escapeHtml(displayName)}</div>
-                        <a href="${escapeHtml(bookmarklet.content)}" 
-                           class="bookmarklet-link" 
-                           draggable="false"
-                           onclick="return false;">
-                            ${escapeHtml(bookmarklet.content.substring(0, 50))}...
-                        </a>
+                        <div class="bookmarklet-content">
+                            <a href="${escapeHtml(bookmarklet.content)}" 
+                              class="bookmarklet-link" 
+                              draggable="false"
+                              onclick="return false;">
+                                ${escapeHtml(displayName)}
+                            </a>
+                            <button class="bookmarklet-execute" onclick="${escapeHtml(bookmarklet.content.replace('javascript:', ''))}">执行</button>
+                        </div>
                         <div class="drag-hint">
                             💡 拖拽此卡片到书签栏，或右键链接添加到书签
                         </div>
