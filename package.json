@@ -4,6 +4,7 @@
   "description": "网页小书签制作工具。提供了一个可调试书签的网页，并且最后可以自动压缩代码并输出符合小书签格式的产物",
   "main": "index.js",
   "scripts": {
+    "create": "node scripts/create.js",
     "dev": "node scripts/dev.js",
     "build": "node scripts/build.js"
   },
