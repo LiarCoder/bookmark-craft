@@ -1,0 +1,1 @@
+javascript:(function(){"undefined"==typeof hasOutline&&(hasOutline=!1),document.querySelectorAll("*").forEach(e=>{e.style.outline=hasOutline?"none":"1px solid #"+(~~(Math.random()*(1<<24))).toString(16)}),hasOutline=!hasOutline;})();
