@@ -4,6 +4,8 @@
   "description": "网页小书签代码集合。提供了一个可调试书签的网页，并且最后可以自动压缩代码并输出符合小书签格式的产物",
   "main": "index.js",
   "scripts": {
+    "dev": "node scripts/dev.js",
+    "build": "node scripts/build.js",
     "test": "test"
   },
   "keywords": [
@@ -11,5 +13,10 @@
     "terser"
   ],
   "author": "LiarCoder",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "terser": "^5.0.0",
+    "express": "^4.18.0",
+    "chokidar": "^3.5.0"
+  }
 }
