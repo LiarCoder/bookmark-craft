@@ -85,6 +85,78 @@ async function ensureOutputDirectory() {
 }
 
 /**
+ * 解析 Terser 错误信息，提取行号和列号
+ * @param {Error} error - Terser 错误对象
+ * @param {string} filename - 文件名
+ * @returns {Object} 格式化的错误信息
+ */
+function parseErrorDetails(error, filename) {
+  const errorInfo = {
+    filename,
+    message: error.message,
+    line: null,
+    column: null,
+    type: "unknown",
+  };
+
+  // 检查是否是语法错误
+  if (
+    error.message.includes("SyntaxError") ||
+    error.message.includes("Unexpected token")
+  ) {
+    errorInfo.type = "syntax";
+
+    // 尝试从错误消息中提取行号和列号
+    const lineMatch = error.message.match(/line (\d+)/i);
+    const columnMatch = error.message.match(/column (\d+)/i);
+    const positionMatch = error.message.match(/\((\d+):(\d+)\)/);
+
+    if (positionMatch) {
+      errorInfo.line = parseInt(positionMatch[1]);
+      errorInfo.column = parseInt(positionMatch[2]);
+    } else {
+      if (lineMatch) errorInfo.line = parseInt(lineMatch[1]);
+      if (columnMatch) errorInfo.column = parseInt(columnMatch[1]);
+    }
+  } else if (error.message.includes("Parse error")) {
+    errorInfo.type = "parse";
+  } else if (error.message.includes("Compress error")) {
+    errorInfo.type = "compress";
+  }
+
+  return errorInfo;
+}
+
+/**
+ * 格式化错误信息显示
+ * @param {Object} errorInfo - 错误信息对象
+ * @returns {string} 格式化的错误消息
+ */
+function formatErrorMessage(errorInfo) {
+  let message = `✗ 文件 ${errorInfo.filename} 处理失败`;
+
+  if (errorInfo.type === "syntax") {
+    message += " - JavaScript 语法错误";
+    if (errorInfo.line) {
+      message += `\n  位置: 第 ${errorInfo.line} 行`;
+      if (errorInfo.column) {
+        message += `，第 ${errorInfo.column} 列`;
+      }
+    }
+    message += `\n  错误详情: ${errorInfo.message}`;
+    message += `\n  建议: 请检查文件的 JavaScript 语法，确保所有括号、分号和引号都正确匹配`;
+  } else if (errorInfo.type === "parse") {
+    message += " - 代码解析错误";
+    message += `\n  错误详情: ${errorInfo.message}`;
+    message += `\n  建议: 请检查代码结构和语法`;
+  } else {
+    message += ` - ${errorInfo.message}`;
+  }
+
+  return message;
+}
+
+/**
  * 使用 Terser 压缩 JavaScript 代码
  * @param {string} code - 要压缩的代码
  * @param {string} filename - 文件名（用于错误报告）
@@ -122,16 +194,21 @@ async function compressCode(code, filename) {
         // 紧凑输出
         beautify: false,
       },
+      // 添加源文件名用于更好的错误报告
+      sourceMap: false,
     };
 
     const result = await minify(code, terserOptions);
 
     if (result.error) {
-      throw new Error(`Terser 压缩错误: ${result.error.message}`);
+      const errorInfo = parseErrorDetails(result.error, filename);
+      const formattedMessage = formatErrorMessage(errorInfo);
+      console.error(formattedMessage);
+      throw new Error(`压缩失败: ${result.error.message}`);
     }
 
     if (!result.code) {
-      throw new Error("Terser 压缩结果为空");
+      throw new Error("Terser 压缩结果为空，可能是输入代码有问题");
     }
 
     const originalSize = code.length;
@@ -147,14 +224,11 @@ async function compressCode(code, filename) {
 
     return result.code;
   } catch (error) {
-    console.error(`✗ 压缩文件 ${filename} 时出错:`, error.message);
-
-    // 如果是语法错误，提供更详细的信息
-    if (
-      error.message.includes("SyntaxError") ||
-      error.message.includes("Unexpected token")
-    ) {
-      console.error(`语法错误详情: 请检查文件 ${filename} 的 JavaScript 语法`);
+    // 如果不是我们已经处理过的错误，进行额外处理
+    if (!error.message.startsWith("压缩失败:")) {
+      const errorInfo = parseErrorDetails(error, filename);
+      const formattedMessage = formatErrorMessage(errorInfo);
+      console.error(formattedMessage);
     }
 
     throw error;
@@ -191,6 +265,8 @@ function wrapAsBookmarklet(compressedCode, filename) {
  * @param {Array} processedFiles - 处理后的文件数组
  */
 async function writeOutputFiles(processedFiles) {
+  const writeErrors = [];
+
   try {
     console.log(`\n开始写入 ${processedFiles.length} 个输出文件...`);
 
@@ -203,25 +279,57 @@ async function writeOutputFiles(processedFiles) {
         const outputPath = path.join(OUTPUT_DIR, file.filename);
 
         console.log(`写入文件: ${file.filename}`);
+
+        // 检查文件大小
+        const fileSizeKB = (file.bookmarkletCode.length / 1024).toFixed(2);
+
         await fs.writeFile(outputPath, file.bookmarkletCode, "utf8");
 
-        console.log(`✓ 成功写入: ${outputPath}`);
+        console.log(`✓ 成功写入: ${outputPath} (${fileSizeKB} KB)`);
         writeSuccessCount++;
       } catch (error) {
-        console.error(`✗ 写入文件 ${file.filename} 失败:`, error.message);
+        const errorMessage = `写入文件 ${file.filename} 失败`;
+        let detailedError = error.message;
+
+        // 提供更具体的错误信息
+        if (error.code === "EACCES") {
+          detailedError = `权限不足，无法写入文件。请检查输出目录权限: ${OUTPUT_DIR}`;
+        } else if (error.code === "ENOSPC") {
+          detailedError = `磁盘空间不足，无法写入文件`;
+        } else if (error.code === "ENOENT") {
+          detailedError = `输出目录不存在或路径无效: ${OUTPUT_DIR}`;
+        } else if (error.code === "EMFILE" || error.code === "ENFILE") {
+          detailedError = `系统打开文件数量超限，请稍后重试`;
+        }
+
+        console.error(`✗ ${errorMessage}: ${detailedError}`);
+
+        writeErrors.push({
+          filename: file.filename,
+          error: detailedError,
+          code: error.code,
+        });
+
         writeErrorCount++;
       }
     }
 
     console.log(`\n=== 文件写入完成 ===`);
-    console.log(`成功: ${writeSuccessCount} 个文件`);
-    console.log(`失败: ${writeErrorCount} 个文件`);
+    console.log(`成功写入: ${writeSuccessCount} 个文件`);
+    console.log(`写入失败: ${writeErrorCount} 个文件`);
 
     if (writeErrorCount > 0) {
-      throw new Error(`${writeErrorCount} 个文件写入失败`);
+      console.log(`\n写入错误详情:`);
+      writeErrors.forEach((error, index) => {
+        console.log(`${index + 1}. ${error.filename}: ${error.error}`);
+      });
+
+      throw new Error(`${writeErrorCount} 个文件写入失败，请检查上述错误信息`);
     }
   } catch (error) {
-    console.error("写入输出文件时出错:", error.message);
+    if (!error.message.includes("个文件写入失败")) {
+      console.error("写入输出文件时出现未预期的错误:", error.message);
+    }
     throw error;
   }
 }
@@ -230,9 +338,14 @@ async function writeOutputFiles(processedFiles) {
  * 主构建函数
  */
 async function buildBookmarklets() {
+  const buildStartTime = Date.now();
+  const buildErrors = [];
+
   try {
     console.log("=== 开始构建小书签 ===");
     console.log("时间:", new Date().toLocaleString());
+    console.log("源码目录:", SOURCE_DIR);
+    console.log("输出目录:", OUTPUT_DIR);
 
     // 1. 确保输出目录存在
     await ensureOutputDirectory();
@@ -241,7 +354,9 @@ async function buildBookmarklets() {
     const sourceFiles = await readSourceFiles();
 
     if (sourceFiles.length === 0) {
-      console.log("没有找到需要处理的文件，构建结束");
+      console.log("\n=== 构建完成 ===");
+      console.log("状态: 没有找到需要处理的文件");
+      console.log("建议: 请在 src/bookmarklets/ 目录中添加 .js 文件");
       return;
     }
 
@@ -249,12 +364,18 @@ async function buildBookmarklets() {
 
     // 处理每个文件：压缩代码
     const processedFiles = [];
+    const fileResults = [];
     let successCount = 0;
     let errorCount = 0;
+    let totalOriginalSize = 0;
+    let totalCompressedSize = 0;
 
     for (const file of sourceFiles) {
       try {
         console.log(`\n处理文件: ${file.filename}`);
+
+        // 记录原始文件大小
+        totalOriginalSize += file.content.length;
 
         // 压缩代码
         const compressedCode = await compressCode(file.content, file.filename);
@@ -265,41 +386,128 @@ async function buildBookmarklets() {
           file.filename
         );
 
+        // 记录压缩后大小
+        totalCompressedSize += compressedCode.length;
+
         processedFiles.push({
           ...file,
           compressedCode,
           bookmarkletCode,
         });
 
+        fileResults.push({
+          filename: file.filename,
+          status: "success",
+          originalSize: file.content.length,
+          compressedSize: compressedCode.length,
+          bookmarkletSize: bookmarkletCode.length,
+        });
+
         successCount++;
       } catch (error) {
-        console.error(`处理文件 ${file.filename} 失败:`, error.message);
+        console.error(`\n处理文件 ${file.filename} 失败:`);
+        console.error(`错误类型: ${error.constructor.name}`);
+        console.error(`错误信息: ${error.message}`);
+
+        buildErrors.push({
+          filename: file.filename,
+          error: error.message,
+          type: error.constructor.name,
+        });
+
+        fileResults.push({
+          filename: file.filename,
+          status: "failed",
+          error: error.message,
+        });
+
         errorCount++;
         // 继续处理其他文件，不中断整个构建过程
       }
     }
 
     console.log(`\n=== 处理阶段完成 ===`);
-    console.log(`成功: ${successCount} 个文件`);
-    console.log(`失败: ${errorCount} 个文件`);
+    console.log(`成功处理: ${successCount} 个文件`);
+    console.log(`处理失败: ${errorCount} 个文件`);
 
-    if (errorCount > 0) {
-      console.log("注意: 部分文件处理失败，请检查上述错误信息");
+    if (successCount > 0) {
+      const totalCompressionRatio =
+        totalOriginalSize > 0
+          ? (
+              ((totalOriginalSize - totalCompressedSize) / totalOriginalSize) *
+              100
+            ).toFixed(1)
+          : 0;
+      console.log(
+        `总压缩率: ${totalCompressionRatio}% (${totalOriginalSize} → ${totalCompressedSize} 字符)`
+      );
     }
 
     // 如果有成功处理的文件，写入输出目录
     if (processedFiles.length > 0) {
       await writeOutputFiles(processedFiles);
 
-      console.log(`\n=== 构建完成 ===`);
-      console.log(`总共处理了 ${processedFiles.length} 个文件`);
-      console.log(`输出目录: ${OUTPUT_DIR}`);
+      console.log(`\n=== 构建成功完成 ===`);
+      console.log(
+        `构建时间: ${((Date.now() - buildStartTime) / 1000).toFixed(2)} 秒`
+      );
+      console.log(`成功处理: ${processedFiles.length} 个小书签文件`);
+      console.log(`输出位置: ${OUTPUT_DIR}`);
+
+      // 显示成功处理的文件列表
+      console.log(`\n成功构建的文件:`);
+      fileResults
+        .filter((f) => f.status === "success")
+        .forEach((file) => {
+          console.log(
+            `  ✓ ${file.filename} (${file.originalSize} → ${file.bookmarkletSize} 字符)`
+          );
+        });
     } else {
-      console.log("\n没有文件成功处理，跳过输出步骤");
+      console.log(`\n=== 构建失败 ===`);
+      console.log("没有文件成功处理，跳过输出步骤");
+    }
+
+    // 如果有错误，显示详细的错误汇总
+    if (buildErrors.length > 0) {
+      console.log(`\n=== 错误汇总 ===`);
+      console.log(`共 ${buildErrors.length} 个文件处理失败:`);
+      buildErrors.forEach((error, index) => {
+        console.log(`\n${index + 1}. 文件: ${error.filename}`);
+        console.log(`   错误类型: ${error.type}`);
+        console.log(`   错误信息: ${error.error}`);
+      });
+
+      console.log(`\n建议解决方案:`);
+      console.log(`1. 检查失败文件的 JavaScript 语法`);
+      console.log(`2. 确保所有括号、分号和引号都正确匹配`);
+      console.log(`3. 移除或修复有问题的代码`);
+      console.log(`4. 重新运行构建命令`);
+
+      // 如果所有文件都失败了，退出并返回错误码
+      if (errorCount === sourceFiles.length) {
+        process.exit(1);
+      }
     }
   } catch (error) {
-    console.error("\n=== 构建失败 ===");
-    console.error("错误:", error.message);
+    console.error(`\n=== 构建过程出现严重错误 ===`);
+    console.error(
+      `构建时间: ${((Date.now() - buildStartTime) / 1000).toFixed(2)} 秒`
+    );
+    console.error(`错误类型: ${error.constructor.name}`);
+    console.error(`错误信息: ${error.message}`);
+
+    if (error.stack) {
+      console.error(`\n错误堆栈:`);
+      console.error(error.stack);
+    }
+
+    console.error(`\n可能的解决方案:`);
+    console.error(`1. 检查源码目录是否存在: ${SOURCE_DIR}`);
+    console.error(`2. 检查输出目录权限: ${OUTPUT_DIR}`);
+    console.error(`3. 确保 Node.js 和依赖包正确安装`);
+    console.error(`4. 检查磁盘空间是否充足`);
+
     process.exit(1);
   }
 }
