@@ -56,6 +56,11 @@ test("管理页面为拖拽安装提供简短书签名", () => {
   assert.ok(passwordBookmarklet);
   assert.equal(passwordBookmarklet.chineseName, "显示星号密码");
   assert.equal(passwordBookmarklet.bookmarkName, "显示密码");
+  assert.ok(
+    bookmarklets.every(
+      ({ bookmarkName }) => Array.from(bookmarkName).length <= 6
+    )
+  );
 });
 
 test("管理页面脚本语法和基础无障碍标记有效", async () => {
