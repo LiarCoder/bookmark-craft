@@ -94,10 +94,6 @@
       box-shadow: 0 5px 15px rgba(79, 172, 254, 0.2);
     }
 
-    .bookmarklet-card:active {
-      cursor: grabbing;
-    }
-
     .bookmarklet-name {
       font-size: 1.2rem;
       font-weight: 500;
@@ -120,9 +116,10 @@
       border: none;
       padding: 10px 20px;
       display: inline-block;
-      text-wrap: nowrap;
+      white-space: nowrap;
       border-radius: 6px;
       cursor: pointer;
+      font: inherit;
     }
 
     .bookmarklet-link {
@@ -177,7 +174,6 @@
       font-size: 1rem;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-top: 20px;
     }
 
     .refresh-btn:hover {
@@ -193,7 +189,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
       margin-bottom: 20px;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #1d4ed8;
+      outline-offset: 3px;
     }
 
     .connection-status {
@@ -248,6 +252,22 @@
       .bookmarklets-grid {
         grid-template-columns: 1fr;
       }
+
+      .bookmarklet-content {
+        align-items: stretch;
+        flex-direction: column;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
     }
   </style>
 </head>
@@ -260,12 +280,12 @@
     </div>
 
     <div class="content">
-      <div id="status" class="status loading">
+      <div id="status" class="status loading" role="status" aria-live="polite">
         正在加载小书签列表...
       </div>
 
       <div class="controls">
-        <button id="refresh-btn" class="refresh-btn" onclick="loadBookmarklets()">
+        <button id="refresh-btn" class="refresh-btn" type="button">
           刷新列表
         </button>
         <div id="connection-status" class="connection-status">
@@ -301,17 +321,22 @@
       // 显示加载状态
       statusEl.className = 'status loading';
       statusEl.textContent = '正在加载小书签列表...';
-      listEl.innerHTML = '';
+      statusEl.style.display = 'block';
+      listEl.replaceChildren();
       emptyStateEl.style.display = 'none';
 
       try {
-        const response = await fetch('/api/bookmarklets');
+        const response = await fetch('/api/bookmarklets', { cache: 'no-store' });
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
         bookmarklets = await response.json();
+
+        if (!Array.isArray(bookmarklets)) {
+          throw new Error('服务器返回了无效数据');
+        }
 
         if (bookmarklets.length === 0) {
           // 显示空状态
@@ -340,12 +365,16 @@
       tagName = "div",
       text = "",
       attributes = {},
+      events = {},
       children = [],
     }) => {
       const element = document.createElement(tagName);
-      element.innerText = text;
+      element.textContent = text;
       Object.keys(attributes).forEach((key) =>
         element.setAttribute(key, attributes[key])
+      );
+      Object.entries(events).forEach(([eventName, listener]) =>
+        element.addEventListener(eventName, listener)
       );
       if (parent) {
         parent.appendChild(element);
@@ -367,7 +396,7 @@
       const fragment = document.createDocumentFragment();
 
       bookmarklets.forEach(bookmarklet => {
-        const bookmarkletCardElement = createElement({
+        createElement({
           parent: fragment,
           tagName: "div",
           attributes: {
@@ -393,8 +422,10 @@
                   attributes: {
                     href: bookmarklet.content,
                     class: "bookmarklet-link",
-                    onclick: "return false;",
                     title: formatBookmarkletName(bookmarklet.name)
+                  },
+                  events: {
+                    click: event => event.preventDefault()
                   },
                   text: formatBookmarkletName(bookmarklet.name)
                 }),
@@ -402,7 +433,10 @@
                   tagName: "button",
                   attributes: {
                     class: "bookmarklet-execute",
-                    onclick: bookmarklet.content.replace('javascript:', '')
+                    type: "button"
+                  },
+                  events: {
+                    click: () => executeBookmarklet(bookmarklet.content)
                   },
                   text: "执行"
                 }),
@@ -410,7 +444,10 @@
                   tagName: "button",
                   attributes: {
                     class: "bookmarklet-copy",
-                    onclick: `copyToClipboard(\'${bookmarklet.content}\')`
+                    type: "button"
+                  },
+                  events: {
+                    click: () => copyToClipboard(bookmarklet.content)
                   },
                   text: "复制"
                 })
@@ -426,10 +463,18 @@
           ]
         });
 
-        fragment.appendChild(bookmarkletCardElement);
       });
 
       listEl.appendChild(fragment);
+    }
+
+    function executeBookmarklet(content) {
+      if (!content.startsWith('javascript:')) {
+        alert('无效的小书签内容');
+        return;
+      }
+
+      window.location.href = content;
     }
 
     /**
@@ -458,6 +503,7 @@
      */
     document.addEventListener('DOMContentLoaded', () => {
       console.log('小书签管理器界面已加载');
+      document.getElementById('refresh-btn').addEventListener('click', loadBookmarklets);
       loadBookmarklets();
 
       // 启动实时更新功能
@@ -476,6 +522,11 @@
       }
 
       updateConnectionStatus('connecting', '连接中...');
+
+      if (!('EventSource' in window)) {
+        startPolling();
+        return;
+      }
 
       try {
         eventSource = new EventSource('/api/events');
@@ -496,13 +547,7 @@
 
         eventSource.onerror = function (event) {
           console.error('SSE 连接错误:', event);
-          updateConnectionStatus('disconnected', '连接断开');
-
-          // 连接断开后尝试重连
-          setTimeout(() => {
-            console.log('尝试重新连接 SSE...');
-            setupRealTimeUpdates();
-          }, 3000);
+          updateConnectionStatus('connecting', '连接中断，正在重连...');
         };
 
       } catch (error) {
@@ -544,6 +589,13 @@
           console.log('收到构建完成通知，刷新列表');
           // 自动刷新小书签列表
           loadBookmarklets();
+          break;
+
+        case 'build_start':
+        case 'build_queued':
+          statusEl.style.display = 'block';
+          statusEl.className = 'status loading';
+          statusEl.textContent = data.message;
           break;
 
         case 'build_error':
