@@ -38,24 +38,23 @@ function jumpToTask(prefix, number) {
 
 // 主要处理函数，支持重试
 function processInput() {
-  // 获取用户输入并标准化
   const promptText = "请输入飞书任务号\n支持格式：f-123, g-456, m-789, s-012";
 
-  const rawInput = window.prompt(promptText);
-  if (!rawInput) return; // 用户取消输入
+  while (true) {
+    const rawInput = window.prompt(promptText);
+    if (!rawInput) return;
 
-  const taskInfo = validateTaskNumber(rawInput);
+    const taskInfo = validateTaskNumber(rawInput);
 
-  if (!taskInfo) {
+    if (taskInfo) {
+      jumpToTask(taskInfo.prefix, taskInfo.number);
+      return;
+    }
+
     window.alert(
       "❌ 任务号格式错误！\n\n正确格式示例：\n• f-123\n• g-456\n• m-789\n• s-012"
     );
-    // 错误提示后重新尝试
-    return processInput();
   }
-
-  // 跳转到任务页面
-  jumpToTask(taskInfo.prefix, taskInfo.number);
 }
 
 // 尝试读取剪贴板并检查是否为合法任务号
