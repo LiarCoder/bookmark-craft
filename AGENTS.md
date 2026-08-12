@@ -22,7 +22,6 @@
 - 修改源码后运行 `npm run build`，同时提交源码与变化的产物
 - 新增或删除书签时保持 `src/bookmarklets/`、`docs/`、`output/` 同名对应
 - `public/index.html` 使用原生 DOM/CSS，不使用字符串形式的事件处理器
-- `.kiro/` 是被忽略的历史设计材料，不作为现役行为依据
 
 ## 变更原则
 
