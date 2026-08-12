@@ -1,4 +1,5 @@
 // @name: 显示星号密码
+// @bookmark-name: 显示密码
 
 for (let input = document.getElementsByTagName("input"), i = 0; i < input.length; i++) {
   const inputType = input[i].getAttribute("type");

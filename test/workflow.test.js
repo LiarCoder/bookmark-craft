@@ -5,7 +5,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 const vm = require("node:vm");
-const { setupFileWatcher } = require("../scripts/dev.js");
+const { readBookmarklets, setupFileWatcher } = require("../scripts/dev.js");
 
 const ROOT_DIR = path.join(__dirname, "..");
 
@@ -47,6 +47,17 @@ test("删除不存在的书签时能正常列出现有名称", () => {
   assert.match(result.stdout, /display-asterisk-password/);
 });
 
+test("管理页面为拖拽安装提供简短书签名", () => {
+  const bookmarklets = readBookmarklets();
+  const passwordBookmarklet = bookmarklets.find(
+    ({ name }) => name === "display-asterisk-password"
+  );
+
+  assert.ok(passwordBookmarklet);
+  assert.equal(passwordBookmarklet.chineseName, "显示星号密码");
+  assert.equal(passwordBookmarklet.bookmarkName, "显示密码");
+});
+
 test("管理页面脚本语法和基础无障碍标记有效", async () => {
   const html = await fs.readFile(path.join(ROOT_DIR, "public/index.html"), "utf8");
   const script = html.match(/<script>([\s\S]+)<\/script>/)?.[1];
@@ -54,6 +65,7 @@ test("管理页面脚本语法和基础无障碍标记有效", async () => {
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script));
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
+  assert.match(html, /text: bookmarklet\.bookmarkName/);
   assert.match(html, /<meta name="theme-color"/);
   assert.match(html, /class="skip-link" href="#main-content"/);
   assert.match(

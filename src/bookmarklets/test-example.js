@@ -1,4 +1,5 @@
 // @name: 测试小书签示例
+// @bookmark-name: 测试书签
 
 // 测试小书签示例 - 包含 console.log 和复杂逻辑
 function testBookmarklet() {

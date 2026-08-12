@@ -1,4 +1,5 @@
 // @name: 根据飞书任务号跳转详情页
+// @bookmark-name: 飞书任务
 
 // 配置映射：任务类型前缀 -> URL路径
 const TASK_CONFIG = {

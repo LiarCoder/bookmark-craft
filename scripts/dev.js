@@ -74,9 +74,15 @@ function readBookmarklets() {
         ? fs.readFileSync(sourcePath, "utf8")
         : "";
       const nameMatch = source.match(/^\s*\/\/\s*@name:\s*(.+)$/m);
+      const bookmarkNameMatch = source.match(
+        /^\s*\/\/\s*@bookmark-name:\s*(.+)$/m
+      );
+      const chineseName =
+        nameMatch?.[1].trim() || path.basename(filename, ".js");
 
       return {
-        chineseName: nameMatch?.[1].trim() || path.basename(filename, ".js"),
+        chineseName,
+        bookmarkName: bookmarkNameMatch?.[1].trim() || chineseName,
         name: path.basename(filename, ".js"),
         filename,
         content: fs.readFileSync(path.join(OUTPUT_DIR, filename), "utf8").trim(),

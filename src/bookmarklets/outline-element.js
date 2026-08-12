@@ -1,4 +1,5 @@
 // @name: 显示元素边框
+// @bookmark-name: 元素描边
 
 if (typeof hasOutline === "undefined") hasOutline = false;
 document.querySelectorAll("*").forEach((item) => {

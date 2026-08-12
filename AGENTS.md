@@ -18,6 +18,7 @@
 - `src/bookmarklets/*.js` 是源码真相，每个文件必须自包含
 - 构建器不打包模块，不要从 `src/utils/` 或 npm 包导入代码
 - 源码首部使用 `// @name: 中文名称` 声明展示名
+- 需要更短的书签栏名称时，使用可选的 `// @bookmark-name: 简短名称`；未声明时沿用展示名
 - `output/*.js` 是受版本控制的生成产物，禁止手工编辑
 - 修改源码后运行 `npm run build`，同时提交源码与变化的产物
 - 新增或删除书签时保持 `src/bookmarklets/`、`docs/`、`output/` 同名对应

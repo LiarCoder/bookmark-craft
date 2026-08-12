@@ -753,8 +753,8 @@
                   attributes: {
                     href: bookmarklet.content,
                     class: "bookmarklet-link",
-                    title: `拖拽安装 ${bookmarklet.chineseName}；单击复制代码`,
-                    "aria-label": `拖拽安装 ${bookmarklet.chineseName}；按回车复制代码`
+                    title: `拖拽安装：${bookmarklet.chineseName}；单击复制代码`,
+                    "aria-label": `拖拽安装：${bookmarklet.chineseName}；按回车复制代码`
                   },
                   events: {
                     click: event => {
@@ -762,7 +762,7 @@
                       copyToClipboard(bookmarklet.content, event.currentTarget);
                     }
                   },
-                  text: "拖拽安装"
+                  text: bookmarklet.bookmarkName
                 }),
                 createElement({
                   tagName: "button",
