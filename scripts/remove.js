@@ -12,7 +12,13 @@ if (!scriptName) {
   process.exit(1);
 }
 
+if (!/^[a-zA-Z0-9-_]+$/.test(scriptName)) {
+  console.error("❌ 错误：脚本名称只能包含字母、数字、短横线和下划线");
+  process.exit(1);
+}
+
 // 路径配置
+const bookmarkletsDir = path.join(__dirname, "../src/bookmarklets");
 const scriptPath = path.join(__dirname, `../src/bookmarklets/${scriptName}.js`);
 const docPath = path.join(__dirname, `../docs/${scriptName}.md`);
 const outputPath = path.join(__dirname, `../output/${scriptName}.js`);
@@ -64,7 +70,7 @@ const printToBeDeletedFiles = () => {
   deleteTips.forEach((tip) => {
     console.log(tip);
   });
-}
+};
 
 printToBeDeletedFiles();
 

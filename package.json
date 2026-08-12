@@ -7,7 +7,8 @@
     "create": "node scripts/create.js",
     "remove": "node scripts/remove.js",
     "dev": "node scripts/dev.js",
-    "build": "node scripts/build.js"
+    "build": "node scripts/build.js",
+    "test": "node --test \"test/*.test.js\""
   },
   "keywords": [
     "bookmarklet",
