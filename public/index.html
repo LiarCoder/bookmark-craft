@@ -6,6 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BookmarkCraft - 小书签制作工具</title>
   <style>
+    :root {
+      --canvas: #edf1ee;
+      --surface: #fafbf9;
+      --surface-strong: #ffffff;
+      --ink: #17211d;
+      --muted: #68736d;
+      --line: #cfd7d2;
+      --line-strong: #aeb9b3;
+      --accent: #245d4b;
+      --accent-dark: #194536;
+      --signal: #dfff78;
+      --danger: #a83e38;
+      --warning: #a66a1f;
+      --display-font: "Arial Narrow", "Aptos Narrow", "Roboto Condensed", sans-serif;
+      --body-font: "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
+      --mono-font: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -13,248 +31,452 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: var(--body-font);
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(23, 33, 29, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 33, 29, 0.035) 1px, transparent 1px),
+        var(--canvas);
+      background-size: 32px 32px;
       min-height: 100vh;
-      padding: 20px;
+      padding: clamp(20px, 5vw, 64px) 20px;
     }
 
-    .container {
-      max-width: 1200px;
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .workspace {
+      width: min(1120px, 100%);
       margin: 0 auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      overflow: hidden;
     }
 
-    .header {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .header h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      font-weight: 300;
-    }
-
-    .header p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      padding: 40px;
-    }
-
-    .status {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .status.loading {
-      color: #6c757d;
-    }
-
-    .status.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .status.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .bookmarklets-grid {
+    .hero {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+      gap: clamp(32px, 7vw, 96px);
+      align-items: end;
+      padding: clamp(32px, 6vw, 72px) 0 clamp(36px, 6vw, 64px);
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
     }
 
-    .bookmarklet-card {
-      background: white;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      padding: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .bookmarklet-card:hover {
-      border-color: #4facfe;
-      box-shadow: 0 5px 15px rgba(79, 172, 254, 0.2);
-    }
-
-    .bookmarklet-name {
-      font-size: 1.2rem;
-      font-weight: 500;
-      margin-bottom: 10px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    .bookmarklet-content {
+    .eyebrow {
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
-    .bookmarklet-execute,
-    .bookmarklet-copy {
-      background: linear-gradient(135deg, #4a5a6a 0%, #6b7a8f 100%);
-      color: white;
-      border: none;
-      padding: 10px 20px;
+    .brand-mark {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      color: var(--surface);
+      background: var(--ink);
+      border-radius: 4px;
+      letter-spacing: -0.06em;
+    }
+
+    .hero h1 {
+      max-width: 720px;
+      font-family: var(--display-font);
+      font-size: clamp(4rem, 11vw, 8.5rem);
+      font-stretch: condensed;
+      font-weight: 800;
+      letter-spacing: -0.075em;
+      line-height: 0.76;
+    }
+
+    .hero h1 span {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--ink);
+    }
+
+    .hero-copy {
+      max-width: 520px;
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.8vw, 1.15rem);
+      line-height: 1.65;
+    }
+
+    .install-rail {
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--ink);
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    .protocol {
       display: inline-block;
-      white-space: nowrap;
-      border-radius: 6px;
-      cursor: pointer;
-      font: inherit;
+      padding: 4px 8px;
+      color: var(--ink);
+      background: var(--signal);
+      font-family: var(--mono-font);
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.05em;
     }
 
-    .bookmarklet-link {
-      display: inline-block;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      word-break: break-all;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      cursor: grab;
-    }
-
-    .bookmarklet-link:hover {
-      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-    }
-
-    .drag-hint {
-      margin-top: 10px;
-      font-size: 0.8rem;
-      color: #6c757d;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6c757d;
-    }
-
-    .empty-state h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      color: #495057;
-    }
-
-    .empty-state p {
-      font-size: 1rem;
+    .rail-copy {
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: 0.86rem;
       line-height: 1.6;
     }
 
-    .refresh-btn {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .rail-flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      color: var(--ink);
+      font-family: var(--mono-font);
+      font-size: 0.78rem;
+      font-weight: 600;
     }
 
-    .refresh-btn:hover {
-      background: linear-gradient(135deg, #3d8bfe 0%, #00d4fe 100%);
-      transform: translateY(-1px);
+    .rail-line {
+      position: relative;
+      flex: 1;
+      height: 1px;
+      background: var(--ink);
     }
 
-    .refresh-btn:active {
-      transform: translateY(0);
+    .rail-line::after {
+      position: absolute;
+      top: -3px;
+      right: 0;
+      width: 7px;
+      height: 7px;
+      content: "";
+      background: var(--ink);
+      border-radius: 50%;
+    }
+
+    .library {
+      padding: clamp(40px, 6vw, 72px) 0 24px;
+    }
+
+    .library-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .library-title .eyebrow {
+      margin-bottom: 8px;
+    }
+
+    .library-title h2 {
+      font-family: var(--display-font);
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 1;
     }
 
     .controls {
       display: flex;
-      justify-content: space-between;
       align-items: center;
       gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    button:focus-visible,
-    a:focus-visible {
-      outline: 3px solid #1d4ed8;
-      outline-offset: 3px;
     }
 
     .connection-status {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.9rem;
-      color: #6c757d;
+      color: var(--muted);
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      white-space: nowrap;
     }
 
     .status-indicator {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
+      background: var(--danger);
       border-radius: 50%;
-      background: #dc3545;
-      animation: pulse 2s infinite;
     }
 
     .status-indicator.connected {
-      background: #28a745;
-      animation: none;
+      background: var(--accent);
     }
 
     .status-indicator.connecting {
-      background: #ffc107;
-      animation: pulse 1s infinite;
+      background: var(--warning);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .refresh-btn {
+      min-height: 40px;
+      padding: 0 16px;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      cursor: pointer;
+      font: 600 0.78rem var(--mono-font);
+      transition: background-color 160ms ease, border-color 160ms ease;
+    }
+
+    .refresh-btn:hover {
+      background: var(--surface-strong);
+      border-color: var(--ink);
+    }
+
+    .status {
+      min-height: 40px;
+      margin-bottom: 18px;
+      padding: 10px 14px;
+      color: var(--muted);
+      background: rgba(250, 251, 249, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: 0.78rem/1.45 var(--mono-font);
+    }
+
+    .status::before {
+      margin-right: 8px;
+      content: "●";
+      color: var(--line-strong);
+    }
+
+    .status.success::before {
+      color: var(--accent);
+    }
+
+    .status.error {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+    }
+
+    .status.error::before {
+      color: var(--danger);
+    }
+
+    .bookmarklets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .bookmarklet-card {
+      display: flex;
+      min-height: 220px;
+      flex-direction: column;
+      padding: 22px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .bookmarklet-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .bookmarklet-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .bookmarklet-name {
+      font-family: var(--display-font);
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+    }
+
+    .bookmarklet-type {
+      padding: 4px 6px;
+      color: var(--accent-dark);
+      background: color-mix(in srgb, var(--signal) 48%, transparent);
+      border-radius: 4px;
+      font: 700 0.66rem var(--mono-font);
+      letter-spacing: 0.08em;
+    }
+
+    .bookmarklet-file {
+      margin-top: 10px;
+      color: var(--muted);
+      font: 0.75rem var(--mono-font);
+      overflow-wrap: anywhere;
+    }
+
+    .bookmarklet-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 32px;
+    }
+
+    .bookmarklet-link,
+    .bookmarklet-execute,
+    .bookmarklet-copy {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font: 700 0.78rem var(--mono-font);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+    }
+
+    .bookmarklet-link {
+      color: var(--surface-strong);
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      cursor: grab;
+    }
+
+    .bookmarklet-link::before {
+      margin-right: 8px;
+      content: "↗";
+      font-size: 1rem;
+    }
+
+    .bookmarklet-link:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .bookmarklet-execute,
+    .bookmarklet-copy {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--line-strong);
+    }
+
+    .bookmarklet-execute:hover,
+    .bookmarklet-copy:hover {
+      background: var(--surface-strong);
+      border-color: var(--ink);
+    }
+
+    .drag-hint {
+      margin-top: 12px;
+      color: var(--muted);
+      font: 0.7rem/1.5 var(--mono-font);
+    }
+
+    .empty-state {
+      padding: clamp(56px, 10vw, 100px) 24px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px dashed var(--line-strong);
+      text-align: center;
+    }
+
+    .empty-state h3 {
+      margin-bottom: 10px;
+      color: var(--ink);
+      font-family: var(--display-font);
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .empty-state p {
+      line-height: 1.7;
+    }
+
+    .empty-state code {
+      padding: 2px 5px;
+      color: var(--accent-dark);
+      background: color-mix(in srgb, var(--signal) 48%, transparent);
+      font-family: var(--mono-font);
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 20px 0 0;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font: 0.68rem var(--mono-font);
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid var(--signal);
+      outline-offset: 3px;
     }
 
     @keyframes pulse {
-      0% {
-        opacity: 1;
-      }
-
       50% {
-        opacity: 0.5;
-      }
-
-      100% {
-        opacity: 1;
+        opacity: 0.35;
       }
     }
 
     @media (max-width: 768px) {
-      .header h1 {
-        font-size: 2rem;
+      body {
+        padding-top: 20px;
       }
 
-      .content {
-        padding: 20px;
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
       }
 
       .bookmarklets-grid {
         grid-template-columns: 1fr;
       }
 
-      .bookmarklet-content {
-        align-items: stretch;
+      .library-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .bookmarklet-card {
+        min-height: 210px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 {
+        font-size: clamp(3.65rem, 22vw, 5.5rem);
+      }
+
+      .install-rail {
+        box-shadow: 5px 5px 0 var(--ink);
+      }
+
+      .bookmarklet-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .bookmarklet-link {
+        grid-column: 1 / -1;
+      }
+
+      .page-footer {
         flex-direction: column;
       }
     }
@@ -273,25 +495,45 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>小书签管理器</h1>
-      <p>拖拽下方的小书签到浏览器书签栏即可使用</p>
-    </div>
-
-    <div class="content">
-      <div id="status" class="status loading" role="status" aria-live="polite">
-        正在加载小书签列表...
+  <main class="workspace">
+    <header class="hero">
+      <div>
+        <p class="eyebrow"><span class="brand-mark">BC</span> Local bookmarklet workbench</p>
+        <h1>Bookmark<br><span>Craft</span></h1>
+        <p class="hero-copy">把常用脚本收进浏览器书签栏。无需安装扩展，拖过去，随时调用。</p>
       </div>
 
-      <div class="controls">
-        <button id="refresh-btn" class="refresh-btn" type="button">
-          刷新列表
-        </button>
-        <div id="connection-status" class="connection-status">
-          <span class="status-indicator"></span>
-          <span class="status-text">连接中...</span>
+      <aside class="install-rail" aria-label="安装提示">
+        <code class="protocol">javascript:</code>
+        <p class="rail-copy">小书签本质上是一段以 JavaScript 协议开头的浏览器动作。</p>
+        <div class="rail-flow" aria-hidden="true">
+          <span>按住拖拽</span>
+          <span class="rail-line"></span>
+          <span>书签栏</span>
         </div>
+      </aside>
+    </header>
+
+    <section class="library" aria-labelledby="library-title">
+      <div class="library-header">
+        <div class="library-title">
+          <p class="eyebrow">Library / <span id="bookmarklet-count">--</span></p>
+          <h2 id="library-title">可用小书签</h2>
+        </div>
+
+        <div class="controls">
+          <div id="connection-status" class="connection-status">
+            <span class="status-indicator"></span>
+            <span class="status-text">连接中...</span>
+          </div>
+          <button id="refresh-btn" class="refresh-btn" type="button">
+            重新载入
+          </button>
+        </div>
+      </div>
+
+      <div id="status" class="status loading" role="status" aria-live="polite">
+        正在加载小书签列表...
       </div>
 
       <div id="bookmarklets-list" class="bookmarklets-grid">
@@ -303,8 +545,13 @@
         <p>请在 <code>src/bookmarklets/</code> 目录中创建 JavaScript 文件，<br>
           然后运行构建命令生成小书签。</p>
       </div>
-    </div>
-  </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>BookmarkCraft / Local only</span>
+      <span>Drag · Run · Copy</span>
+    </footer>
+  </main>
 
   <script>
     // 全局变量
@@ -317,6 +564,7 @@
       const statusEl = document.getElementById('status');
       const listEl = document.getElementById('bookmarklets-list');
       const emptyStateEl = document.getElementById('empty-state');
+      const countEl = document.getElementById('bookmarklet-count');
 
       // 显示加载状态
       statusEl.className = 'status loading';
@@ -338,6 +586,8 @@
           throw new Error('服务器返回了无效数据');
         }
 
+        countEl.textContent = String(bookmarklets.length).padStart(2, '0');
+
         if (bookmarklets.length === 0) {
           // 显示空状态
           statusEl.style.display = 'none';
@@ -353,6 +603,7 @@
 
       } catch (error) {
         console.error('加载小书签失败:', error);
+        countEl.textContent = '--';
         statusEl.className = 'status error';
         statusEl.textContent = `加载失败: ${error.message}`;
         emptyStateEl.style.display = 'none';
@@ -361,7 +612,7 @@
 
     // 创建元素函数
     const createElement = ({
-      parent = document.body,
+      parent = null,
       tagName = "div",
       text = "",
       attributes = {},
@@ -398,7 +649,7 @@
       bookmarklets.forEach(bookmarklet => {
         createElement({
           parent: fragment,
-          tagName: "div",
+          tagName: "article",
           attributes: {
             class: "bookmarklet-card"
           },
@@ -406,15 +657,37 @@
             createElement({
               tagName: "div",
               attributes: {
-                title: bookmarklet.chineseName,
-                class: "bookmarklet-name"
+                class: "bookmarklet-meta"
               },
-              text: bookmarklet.chineseName
+              children: [
+                createElement({
+                  tagName: "h3",
+                  attributes: {
+                    title: bookmarklet.chineseName,
+                    class: "bookmarklet-name"
+                  },
+                  text: bookmarklet.chineseName
+                }),
+                createElement({
+                  tagName: "span",
+                  attributes: {
+                    class: "bookmarklet-type"
+                  },
+                  text: "JS"
+                })
+              ]
+            }),
+            createElement({
+              tagName: "code",
+              attributes: {
+                class: "bookmarklet-file"
+              },
+              text: `${bookmarklet.name}.js`
             }),
             createElement({
               tagName: "div",
               attributes: {
-                class: "bookmarklet-content"
+                class: "bookmarklet-actions"
               },
               children: [
                 createElement({
@@ -422,12 +695,12 @@
                   attributes: {
                     href: bookmarklet.content,
                     class: "bookmarklet-link",
-                    title: formatBookmarkletName(bookmarklet.name)
+                    title: `拖拽安装 ${bookmarklet.chineseName}`
                   },
                   events: {
                     click: event => event.preventDefault()
                   },
-                  text: formatBookmarkletName(bookmarklet.name)
+                  text: "拖拽安装"
                 }),
                 createElement({
                   tagName: "button",
@@ -438,7 +711,7 @@
                   events: {
                     click: () => executeBookmarklet(bookmarklet.content)
                   },
-                  text: "执行"
+                  text: "运行"
                 }),
                 createElement({
                   tagName: "button",
@@ -447,7 +720,7 @@
                     type: "button"
                   },
                   events: {
-                    click: () => copyToClipboard(bookmarklet.content)
+                    click: event => copyToClipboard(bookmarklet.content, event.currentTarget)
                   },
                   text: "复制"
                 })
@@ -458,7 +731,7 @@
               attributes: {
                 class: "drag-hint",
               },
-              text: "☝ 拖拽链接到书签栏 💡"
+              text: "将绿色按钮拖入浏览器书签栏即可安装"
             })
           ]
         });
@@ -480,22 +753,20 @@
     /**
      * 复制文本到剪贴板
      */
-    function copyToClipboard(content) {
-      navigator.clipboard.writeText(content).then(() => {
-        alert('复制成功');
-      }).catch((error) => {
-        console.error('复制失败:', error);
-        alert('复制失败');
-      });
-    }
+    async function copyToClipboard(content, button) {
+      const originalText = button.textContent;
 
-    /**
-     * 格式化小书签名称，使其更易读
-     */
-    function formatBookmarkletName(filename) {
-      return filename
-        .replace(/[-_]/g, ' ')  // 将连字符和下划线替换为空格
-        .replace(/\b\w/g, l => l.toUpperCase());  // 首字母大写
+      try {
+        await navigator.clipboard.writeText(content);
+        button.textContent = '已复制';
+      } catch (error) {
+        console.error('复制失败:', error);
+        button.textContent = '复制失败';
+      }
+
+      setTimeout(() => {
+        button.textContent = originalText;
+      }, 1500);
     }
 
     /**
