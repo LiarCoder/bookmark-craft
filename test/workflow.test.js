@@ -47,11 +47,22 @@ test("删除不存在的书签时能正常列出现有名称", () => {
   assert.match(result.stdout, /display-asterisk-password/);
 });
 
-test("管理页面脚本语法有效且不使用字符串事件处理器", async () => {
+test("管理页面脚本语法和基础无障碍标记有效", async () => {
   const html = await fs.readFile(path.join(ROOT_DIR, "public/index.html"), "utf8");
   const script = html.match(/<script>([\s\S]+)<\/script>/)?.[1];
 
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script));
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
+  assert.match(html, /<meta name="theme-color"/);
+  assert.match(html, /class="skip-link" href="#main-content"/);
+  assert.match(
+    html,
+    /id="connection-status"[^>]*role="status"[^>]*aria-live="polite"/
+  );
+  assert.match(
+    html,
+    /id="action-feedback"[^>]*role="status"[^>]*aria-live="polite"/
+  );
+  assert.doesNotMatch(html, /\.\.\./);
 });

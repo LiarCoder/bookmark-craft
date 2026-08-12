@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#edf1ee">
   <title>BookmarkCraft - 小书签制作工具</title>
   <style>
     :root {
@@ -45,6 +46,38 @@
     button,
     a {
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 10;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      color: var(--surface-strong);
+      background: var(--ink);
+      border-radius: 6px;
+      font: 700 0.78rem var(--mono-font);
+      text-decoration: none;
+      transform: translateY(-150%);
+      transition: transform 120ms ease;
+    }
+
+    .skip-link:focus-visible {
+      transform: translateY(0);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .workspace {
@@ -94,6 +127,7 @@
       font-weight: 800;
       letter-spacing: -0.075em;
       line-height: 0.76;
+      text-wrap: balance;
     }
 
     .hero h1 span {
@@ -185,6 +219,12 @@
       font-weight: 800;
       letter-spacing: -0.045em;
       line-height: 1;
+      text-wrap: balance;
+      scroll-margin-top: 24px;
+    }
+
+    .bookmarklet-count {
+      font-variant-numeric: tabular-nums;
     }
 
     .controls {
@@ -228,7 +268,7 @@
       border-radius: 6px;
       cursor: pointer;
       font: 600 0.78rem var(--mono-font);
-      transition: background-color 160ms ease, border-color 160ms ease;
+      transition: transform 120ms ease;
     }
 
     .refresh-btn:hover {
@@ -280,7 +320,7 @@
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 10px;
-      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      transition: transform 180ms ease;
     }
 
     .bookmarklet-card:hover {
@@ -297,14 +337,17 @@
     }
 
     .bookmarklet-name {
+      min-width: 0;
       font-family: var(--display-font);
       font-size: clamp(1.45rem, 3vw, 2rem);
       font-weight: 800;
       letter-spacing: -0.035em;
       line-height: 1.05;
+      overflow-wrap: anywhere;
     }
 
     .bookmarklet-type {
+      flex: 0 0 auto;
       padding: 4px 6px;
       color: var(--accent-dark);
       background: color-mix(in srgb, var(--signal) 48%, transparent);
@@ -317,6 +360,7 @@
       margin-top: 10px;
       color: var(--muted);
       font: 0.75rem var(--mono-font);
+      font-variant-numeric: tabular-nums;
       overflow-wrap: anywhere;
     }
 
@@ -341,7 +385,7 @@
       font: 700 0.78rem var(--mono-font);
       text-decoration: none;
       white-space: nowrap;
-      transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+      transition: transform 120ms ease;
     }
 
     .bookmarklet-link {
@@ -349,6 +393,7 @@
       background: var(--accent);
       border: 1px solid var(--accent);
       cursor: grab;
+      user-select: none;
     }
 
     .bookmarklet-link::before {
@@ -373,6 +418,13 @@
     .bookmarklet-copy:hover {
       background: var(--surface-strong);
       border-color: var(--ink);
+    }
+
+    .refresh-btn:active,
+    .bookmarklet-link:active,
+    .bookmarklet-execute:active,
+    .bookmarklet-copy:active {
+      transform: translateY(1px);
     }
 
     .drag-hint {
@@ -495,16 +547,18 @@
 </head>
 
 <body>
-  <main class="workspace">
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+  <main id="main-content" class="workspace" tabindex="-1">
     <header class="hero">
       <div>
-        <p class="eyebrow"><span class="brand-mark">BC</span> Local bookmarklet workbench</p>
-        <h1>Bookmark<br><span>Craft</span></h1>
+        <p class="eyebrow" translate="no"><span class="brand-mark">BC</span> Local bookmarklet workbench</p>
+        <h1 translate="no">Bookmark<br><span>Craft</span></h1>
         <p class="hero-copy">把常用脚本收进浏览器书签栏。无需安装扩展，拖过去，随时调用。</p>
       </div>
 
       <aside class="install-rail" aria-label="安装提示">
-        <code class="protocol">javascript:</code>
+        <code class="protocol" translate="no">javascript:</code>
         <p class="rail-copy">小书签本质上是一段以 JavaScript 协议开头的浏览器动作。</p>
         <div class="rail-flow" aria-hidden="true">
           <span>按住拖拽</span>
@@ -517,14 +571,14 @@
     <section class="library" aria-labelledby="library-title">
       <div class="library-header">
         <div class="library-title">
-          <p class="eyebrow">Library / <span id="bookmarklet-count">--</span></p>
+          <p class="eyebrow" translate="no">Library / <span id="bookmarklet-count" class="bookmarklet-count">--</span></p>
           <h2 id="library-title">可用小书签</h2>
         </div>
 
         <div class="controls">
-          <div id="connection-status" class="connection-status">
+          <div id="connection-status" class="connection-status" role="status" aria-live="polite">
             <span class="status-indicator"></span>
-            <span class="status-text">连接中...</span>
+            <span class="status-text">连接中…</span>
           </div>
           <button id="refresh-btn" class="refresh-btn" type="button">
             重新载入
@@ -533,8 +587,10 @@
       </div>
 
       <div id="status" class="status loading" role="status" aria-live="polite">
-        正在加载小书签列表...
+        正在加载小书签列表…
       </div>
+
+      <p id="action-feedback" class="visually-hidden" role="status" aria-live="polite"></p>
 
       <div id="bookmarklets-list" class="bookmarklets-grid">
         <!-- 小书签列表将在这里动态生成 -->
@@ -548,8 +604,8 @@
     </section>
 
     <footer class="page-footer">
-      <span>BookmarkCraft / Local only</span>
-      <span>Drag · Run · Copy</span>
+      <span translate="no">BookmarkCraft / Local only</span>
+      <span translate="no">Drag · Run · Copy</span>
     </footer>
   </main>
 
@@ -568,7 +624,7 @@
 
       // 显示加载状态
       statusEl.className = 'status loading';
-      statusEl.textContent = '正在加载小书签列表...';
+      statusEl.textContent = '正在加载小书签列表…';
       statusEl.style.display = 'block';
       listEl.replaceChildren();
       emptyStateEl.style.display = 'none';
@@ -605,7 +661,7 @@
         console.error('加载小书签失败:', error);
         countEl.textContent = '--';
         statusEl.className = 'status error';
-        statusEl.textContent = `加载失败: ${error.message}`;
+        statusEl.textContent = `加载失败：${error.message}。请确认开发服务器正在运行后重新载入`;
         emptyStateEl.style.display = 'none';
       }
     }
@@ -671,7 +727,8 @@
                 createElement({
                   tagName: "span",
                   attributes: {
-                    class: "bookmarklet-type"
+                    class: "bookmarklet-type",
+                    translate: "no"
                   },
                   text: "JS"
                 })
@@ -680,7 +737,8 @@
             createElement({
               tagName: "code",
               attributes: {
-                class: "bookmarklet-file"
+                class: "bookmarklet-file",
+                translate: "no"
               },
               text: `${bookmarklet.name}.js`
             }),
@@ -695,10 +753,14 @@
                   attributes: {
                     href: bookmarklet.content,
                     class: "bookmarklet-link",
-                    title: `拖拽安装 ${bookmarklet.chineseName}`
+                    title: `拖拽安装 ${bookmarklet.chineseName}；单击复制代码`,
+                    "aria-label": `拖拽安装 ${bookmarklet.chineseName}；按回车复制代码`
                   },
                   events: {
-                    click: event => event.preventDefault()
+                    click: event => {
+                      event.preventDefault();
+                      copyToClipboard(bookmarklet.content, event.currentTarget);
+                    }
                   },
                   text: "拖拽安装"
                 }),
@@ -755,17 +817,21 @@
      */
     async function copyToClipboard(content, button) {
       const originalText = button.textContent;
+      const feedbackEl = document.getElementById('action-feedback');
 
       try {
         await navigator.clipboard.writeText(content);
         button.textContent = '已复制';
+        feedbackEl.textContent = '小书签代码已复制到剪贴板';
       } catch (error) {
         console.error('复制失败:', error);
         button.textContent = '复制失败';
+        feedbackEl.textContent = '复制失败，请检查浏览器剪贴板权限后重试';
       }
 
       setTimeout(() => {
         button.textContent = originalText;
+        feedbackEl.textContent = '';
       }, 1500);
     }
 
@@ -792,7 +858,7 @@
         eventSource.close();
       }
 
-      updateConnectionStatus('connecting', '连接中...');
+      updateConnectionStatus('connecting', '连接中…');
 
       if (!('EventSource' in window)) {
         startPolling();
@@ -818,7 +884,7 @@
 
         eventSource.onerror = function (event) {
           console.error('SSE 连接错误:', event);
-          updateConnectionStatus('connecting', '连接中断，正在重连...');
+          updateConnectionStatus('connecting', '连接中断，正在重连…');
         };
 
       } catch (error) {
