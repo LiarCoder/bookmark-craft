@@ -420,6 +420,15 @@
       font: 0.68rem var(--mono-font);
     }
 
+    .repository-link {
+      color: var(--ink);
+      text-underline-offset: 4px;
+    }
+
+    .repository-link:hover {
+      color: var(--accent);
+    }
+
     button:focus-visible,
     a:focus-visible {
       outline: 3px solid var(--signal);
@@ -536,6 +545,8 @@
     <footer class="page-footer">
       <span translate="no">BookmarkCraft / Static library</span>
       <span translate="no">Drag · Run · Copy</span>
+      <a class="repository-link" href="https://github.com/LiarCoder/bookmark-craft" target="_blank"
+        rel="noopener noreferrer" aria-label="在 GitHub 查看 BookmarkCraft 项目">GitHub 仓库 ↗</a>
     </footer>
   </main>
 

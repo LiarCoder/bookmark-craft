@@ -85,6 +85,10 @@ test("管理页面脚本语法和基础无障碍标记有效", async () => {
     html,
     /<link rel="icon" href="\.\/favicon\.ico" type="image\/x-icon">/
   );
+  assert.match(
+    html,
+    /<a class="repository-link" href="https:\/\/github\.com\/LiarCoder\/bookmark-craft" target="_blank"/
+  );
   assert.doesNotMatch(html, /EventSource|setInterval|\/api\//);
   assert.match(html, /<meta name="theme-color"/);
   assert.match(html, /class="skip-link" href="#main-content"/);
