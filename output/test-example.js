@@ -1,1 +1,0 @@
-javascript:(function(){function o(){const o="Hello from test bookmarklet!",e=window.location.href;e.includes("github.com")?alert(o+" - You are on GitHub!"):e.includes("stackoverflow.com")?alert(o+" - You are on Stack Overflow!"):alert(o)}o();})();

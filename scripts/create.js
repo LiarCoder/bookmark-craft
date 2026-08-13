@@ -111,7 +111,7 @@ const printSuccessInfo = () => {
   console.log(`1. 编辑 src/bookmarklets/${scriptName}.js 实现您的功能`);
   console.log(`2. 完善 docs/${scriptName}.md 文档内容`);
   console.log("3. 运行 npm run dev 开始开发调试");
-  console.log("4. 运行 npm run build 构建最终产物");
+  console.log("4. 运行 npm run build 生成静态清单");
 };
 
 // 提示用户输入脚本中文名

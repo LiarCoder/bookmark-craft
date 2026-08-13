@@ -1,7 +1,7 @@
 {
   "name": "bookmark-craft",
   "version": "1.0.0",
-  "description": "网页小书签制作工具。提供了一个可调试书签的网页，并且最后可以自动压缩代码并输出符合小书签格式的产物",
+  "description": "网页小书签制作工具。压缩独立 JavaScript 源码并生成可部署的静态书签清单",
   "private": true,
   "engines": {
     "node": ">=18"
@@ -21,7 +21,6 @@
   "author": "LiarCoder",
   "license": "MIT",
   "devDependencies": {
-    "chokidar": "^3.6.0",
     "express": "^4.22.2",
     "terser": "^5.50.0"
   }

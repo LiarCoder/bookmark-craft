@@ -1,0 +1,30 @@
+[
+  {
+    "chineseName": "显示星号密码",
+    "bookmarkName": "显示密码",
+    "name": "display-asterisk-password",
+    "filename": "display-asterisk-password.js",
+    "content": "javascript:(function(){for(let t=document.getElementsByTagName(\"input\"),e=0;e<t.length;e++){const s=t[e].getAttribute(\"type\");\"password\"===s&&(t[e].setAttribute(\"type\",\"text\"),t[e].setAttribute(\"data-origin-type\",s)),\"text\"===s&&\"password\"===t[e].dataset.originType&&t[e].setAttribute(\"type\",\"password\")}})();"
+  },
+  {
+    "chineseName": "根据飞书任务号跳转详情页",
+    "bookmarkName": "飞书任务",
+    "name": "feishu-issue-jump",
+    "filename": "feishu-issue-jump.js",
+    "content": "javascript:(function(){const n={f:\"issue/detail\",g:\"assignment/detail\",m:\"story/detail\",s:\"s/detail\"},t=\"https://project.feishu.cn/b2rl2h\";function r(n){if(!n)return null;const t=n.trim().toLowerCase().match(/^([fgms])-(\\d+)$/);if(t){const[,n,r]=t;return{prefix:n,number:r}}return null}function i(r,i){const e=`${t}/${n[r]}/${i}`;window.open(e,\"_blank\")}function e(){for(;;){const n=window.prompt(\"请输入飞书任务号\\n支持格式：f-123, g-456, m-789, s-012\");if(!n)return;const t=r(n);if(t)return void i(t.prefix,t.number);window.alert(\"❌ 任务号格式错误！\\n\\n正确格式示例：\\n• f-123\\n• g-456\\n• m-789\\n• s-012\")}}async function o(){try{if(!navigator.clipboard||!navigator.clipboard.readText)return e();const n=r(await navigator.clipboard.readText());n?i(n.prefix,n.number):e()}catch(n){e()}}o();})();"
+  },
+  {
+    "chineseName": "显示元素边框",
+    "bookmarkName": "元素描边",
+    "name": "outline-element",
+    "filename": "outline-element.js",
+    "content": "javascript:(function(){\"undefined\"==typeof hasOutline&&(hasOutline=!1),document.querySelectorAll(\"*\").forEach(e=>{e.style.outline=hasOutline?\"none\":\"1px solid #\"+(~~(Math.random()*(1<<24))).toString(16).padStart(6,\"0\")}),hasOutline=!hasOutline;})();"
+  },
+  {
+    "chineseName": "测试小书签示例",
+    "bookmarkName": "测试书签",
+    "name": "test-example",
+    "filename": "test-example.js",
+    "content": "javascript:(function(){function o(){const o=\"Hello from test bookmarklet!\",e=window.location.href;e.includes(\"github.com\")?alert(o+\" - You are on GitHub!\"):e.includes(\"stackoverflow.com\")?alert(o+\" - You are on Stack Overflow!\"):alert(o)}o();})();"
+  }
+]

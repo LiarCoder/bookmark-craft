@@ -1,1 +1,0 @@
-javascript:(function(){for(let t=document.getElementsByTagName("input"),e=0;e<t.length;e++){const s=t[e].getAttribute("type");"password"===s&&(t[e].setAttribute("type","text"),t[e].setAttribute("data-origin-type",s)),"text"===s&&"password"===t[e].dataset.originType&&t[e].setAttribute("type","password")}})();

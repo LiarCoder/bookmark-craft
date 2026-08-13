@@ -13,11 +13,10 @@ const silentLogger = { log() {} };
 async function createFixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "bookmark-craft-"));
   const sourceDir = path.join(root, "src");
-  const outputDir = path.join(root, "output");
+  const manifestPath = path.join(root, "public", "bookmarklets.json");
   await fs.mkdir(sourceDir);
-  await fs.mkdir(outputDir);
   t.after(() => fs.rm(root, { recursive: true, force: true }));
-  return { sourceDir, outputDir };
+  return { root, sourceDir, manifestPath };
 }
 
 test("wrapAsBookmarklet 生成可拖拽的 JavaScript URL", () => {
@@ -27,40 +26,48 @@ test("wrapAsBookmarklet 生成可拖拽的 JavaScript URL", () => {
   );
 });
 
-test("构建同步源码并移除失去来源的产物", async (t) => {
-  const { sourceDir, outputDir } = await createFixture(t);
-  await fs.writeFile(path.join(sourceDir, "sample.js"), "alert('ok');");
-  await fs.writeFile(path.join(outputDir, "stale.js"), "stale");
+test("构建源码并生成静态清单", async (t) => {
+  const { root, sourceDir, manifestPath } = await createFixture(t);
+  await fs.writeFile(
+    path.join(sourceDir, "sample.js"),
+    "// @name: 示例\n// @bookmark-name: 示例\nalert('ok');"
+  );
 
   const result = await buildBookmarklets({
     sourceDir,
-    outputDir,
+    manifestPath,
     logger: silentLogger,
   });
 
-  assert.deepEqual(result.staleFiles, ["stale.js"]);
-  assert.match(
-    await fs.readFile(path.join(outputDir, "sample.js"), "utf8"),
-    /^javascript:/
-  );
-  await assert.rejects(fs.access(path.join(outputDir, "stale.js")), {
+  assert.equal(result.files.length, 1);
+  assert.deepEqual(JSON.parse(await fs.readFile(manifestPath, "utf8")), [
+    {
+      chineseName: "示例",
+      bookmarkName: "示例",
+      name: "sample",
+      filename: "sample.js",
+      content: result.files[0].bookmarkletCode,
+    },
+  ]);
+  await assert.rejects(fs.access(path.join(root, "output")), {
     code: "ENOENT",
   });
 });
 
-test("任一源码失败时保留上一份完整输出", async (t) => {
-  const { sourceDir, outputDir } = await createFixture(t);
-  const outputPath = path.join(outputDir, "existing.js");
-  await fs.writeFile(outputPath, "previous-output");
+test("任一源码失败时保留上一份静态清单", async (t) => {
+  const { sourceDir, manifestPath } = await createFixture(t);
+  await fs.mkdir(path.dirname(manifestPath), { recursive: true });
+  await fs.writeFile(manifestPath, "previous-manifest");
   await fs.writeFile(path.join(sourceDir, "existing.js"), "alert('ok');");
   await fs.writeFile(path.join(sourceDir, "invalid.js"), "function () {");
 
   await assert.rejects(
-    buildBookmarklets({ sourceDir, outputDir, logger: silentLogger }),
+    buildBookmarklets({
+      sourceDir,
+      manifestPath,
+      logger: silentLogger,
+    }),
     AggregateError
   );
-  assert.equal(await fs.readFile(outputPath, "utf8"), "previous-output");
-  await assert.rejects(fs.access(path.join(outputDir, "invalid.js")), {
-    code: "ENOENT",
-  });
+  assert.equal(await fs.readFile(manifestPath, "utf8"), "previous-manifest");
 });

@@ -21,14 +21,12 @@ if (!/^[a-zA-Z0-9-_]+$/.test(scriptName)) {
 const bookmarkletsDir = path.join(__dirname, "../src/bookmarklets");
 const scriptPath = path.join(__dirname, `../src/bookmarklets/${scriptName}.js`);
 const docPath = path.join(__dirname, `../docs/${scriptName}.md`);
-const outputPath = path.join(__dirname, `../output/${scriptName}.js`);
 
 // 检查文件是否存在
 const scriptExists = fs.existsSync(scriptPath);
 const docExists = fs.existsSync(docPath);
-const outputExists = fs.existsSync(outputPath);
 
-if (!scriptExists && !docExists && !outputExists) {
+if (!scriptExists && !docExists) {
   console.error(`❌ 错误：未找到名称为 "${scriptName}" 的书签文件`);
   console.log("📋 可用的书签文件：");
 
@@ -63,9 +61,6 @@ const printToBeDeletedFiles = () => {
   }
   if (docExists) {
     deleteTips.push(`\t📖 文档文件：${docPath}`);
-  }
-  if (outputExists) {
-    deleteTips.push(`\t📄 输出文件：${outputPath}`);
   }
   deleteTips.forEach((tip) => {
     console.log(tip);
@@ -106,13 +101,6 @@ process.stdin.on("readable", () => {
         deletedFiles.push(`docs/${scriptName}.md`);
       }
 
-      // 检查是否还有输出文件需要清理（自动删除，无需询问）
-      if (outputExists) {
-        fs.unlinkSync(outputPath);
-        deletedCount++;
-        deletedFiles.push(`output/${scriptName}.js`);
-      }
-
       console.log("");
       console.log("✅ 删除成功：");
       deletedFiles.forEach((file) => {
@@ -121,6 +109,7 @@ process.stdin.on("readable", () => {
 
       console.log("");
       console.log(`📊 共删除 ${deletedCount} 个文件`);
+      console.log("💡 请运行 npm run build 更新静态清单");
     } catch (error) {
       console.error("❌ 删除文件时出错：", error.message);
       process.exit(1);

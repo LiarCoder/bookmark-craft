@@ -19,7 +19,6 @@
       --accent-dark: #194536;
       --signal: #dfff78;
       --danger: #a83e38;
-      --warning: #a66a1f;
       --display-font: "Arial Narrow", "Aptos Narrow", "Roboto Condensed", sans-serif;
       --body-font: "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
       --mono-font: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
@@ -227,55 +226,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .connection-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--muted);
-      font-family: var(--mono-font);
-      font-size: 0.72rem;
-      white-space: nowrap;
-    }
-
-    .status-indicator {
-      width: 7px;
-      height: 7px;
-      background: var(--danger);
-      border-radius: 50%;
-    }
-
-    .status-indicator.connected {
-      background: var(--accent);
-    }
-
-    .status-indicator.connecting {
-      background: var(--warning);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    .refresh-btn {
-      min-height: 40px;
-      padding: 0 16px;
-      color: var(--ink);
-      background: transparent;
-      border: 1px solid var(--line-strong);
-      border-radius: 6px;
-      cursor: pointer;
-      font: 600 0.78rem var(--mono-font);
-      transition: transform 120ms ease;
-    }
-
-    .refresh-btn:hover {
-      background: var(--surface-strong);
-      border-color: var(--ink);
-    }
-
     .status {
       min-height: 40px;
       margin-bottom: 18px;
@@ -420,7 +370,6 @@
       border-color: var(--ink);
     }
 
-    .refresh-btn:active,
     .bookmarklet-link:active,
     .bookmarklet-execute:active,
     .bookmarklet-copy:active {
@@ -476,12 +425,6 @@
       outline-offset: 3px;
     }
 
-    @keyframes pulse {
-      50% {
-        opacity: 0.35;
-      }
-    }
-
     @media (max-width: 768px) {
       body {
         padding-top: 20px;
@@ -499,11 +442,6 @@
       .library-header {
         align-items: flex-start;
         flex-direction: column;
-      }
-
-      .controls {
-        width: 100%;
-        justify-content: space-between;
       }
 
       .bookmarklet-card {
@@ -575,15 +513,6 @@
           <h2 id="library-title">可用小书签</h2>
         </div>
 
-        <div class="controls">
-          <div id="connection-status" class="connection-status" role="status" aria-live="polite">
-            <span class="status-indicator"></span>
-            <span class="status-text">连接中…</span>
-          </div>
-          <button id="refresh-btn" class="refresh-btn" type="button">
-            重新载入
-          </button>
-        </div>
       </div>
 
       <div id="status" class="status loading" role="status" aria-live="polite">
@@ -599,12 +528,12 @@
       <div id="empty-state" class="empty-state" style="display: none;">
         <h3>暂无小书签</h3>
         <p>请在 <code>src/bookmarklets/</code> 目录中创建 JavaScript 文件，<br>
-          然后运行构建命令生成小书签。</p>
+          然后运行 <code>npm run build</code> 更新静态清单。</p>
       </div>
     </section>
 
     <footer class="page-footer">
-      <span translate="no">BookmarkCraft / Local only</span>
+      <span translate="no">BookmarkCraft / Static library</span>
       <span translate="no">Drag · Run · Copy</span>
     </footer>
   </main>
@@ -630,7 +559,7 @@
       emptyStateEl.style.display = 'none';
 
       try {
-        const response = await fetch('/api/bookmarklets', { cache: 'no-store' });
+        const response = await fetch('./bookmarklets.json', { cache: 'no-store' });
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -639,7 +568,7 @@
         bookmarklets = await response.json();
 
         if (!Array.isArray(bookmarklets)) {
-          throw new Error('服务器返回了无效数据');
+          throw new Error('静态清单格式无效');
         }
 
         countEl.textContent = String(bookmarklets.length).padStart(2, '0');
@@ -661,7 +590,7 @@
         console.error('加载小书签失败:', error);
         countEl.textContent = '--';
         statusEl.className = 'status error';
-        statusEl.textContent = `加载失败：${error.message}。请确认开发服务器正在运行后重新载入`;
+        statusEl.textContent = `加载失败：${error.message}。请重新生成并部署静态清单`;
         emptyStateEl.style.display = 'none';
       }
     }
@@ -836,154 +765,11 @@
     }
 
     /**
-     * 页面加载完成后自动加载小书签列表并启动实时更新
+     * 页面加载完成后读取静态小书签清单
      */
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('小书签管理器界面已加载');
-      document.getElementById('refresh-btn').addEventListener('click', loadBookmarklets);
       loadBookmarklets();
-
-      // 启动实时更新功能
-      setupRealTimeUpdates();
     });
-
-    /**
-     * 实时更新功能 - 使用 Server-Sent Events (SSE)
-     */
-    let eventSource = null;
-
-    function setupRealTimeUpdates() {
-      // 如果已经有连接，先关闭
-      if (eventSource) {
-        eventSource.close();
-      }
-
-      updateConnectionStatus('connecting', '连接中…');
-
-      if (!('EventSource' in window)) {
-        startPolling();
-        return;
-      }
-
-      try {
-        eventSource = new EventSource('/api/events');
-
-        eventSource.onopen = function (event) {
-          console.log('SSE 连接已建立');
-          updateConnectionStatus('connected', '实时更新已启用');
-        };
-
-        eventSource.onmessage = function (event) {
-          try {
-            const data = JSON.parse(event.data);
-            handleRealTimeUpdate(data);
-          } catch (error) {
-            console.error('解析 SSE 消息失败:', error);
-          }
-        };
-
-        eventSource.onerror = function (event) {
-          console.error('SSE 连接错误:', event);
-          updateConnectionStatus('connecting', '连接中断，正在重连…');
-        };
-
-      } catch (error) {
-        console.error('设置 SSE 连接失败:', error);
-        updateConnectionStatus('disconnected', '实时更新不可用');
-        // 如果 SSE 不支持，回退到定期轮询
-        startPolling();
-      }
-    }
-
-    function updateConnectionStatus(status, text) {
-      const indicator = document.querySelector('.status-indicator');
-      const statusText = document.querySelector('.status-text');
-
-      if (indicator && statusText) {
-        // 移除所有状态类
-        indicator.className = 'status-indicator';
-
-        // 添加新的状态类
-        if (status === 'connected') {
-          indicator.classList.add('connected');
-        } else if (status === 'connecting') {
-          indicator.classList.add('connecting');
-        }
-
-        statusText.textContent = text;
-      }
-    }
-
-    function handleRealTimeUpdate(data) {
-      const statusEl = document.getElementById('status');
-
-      switch (data.type) {
-        case 'connected':
-          console.log('实时更新服务已连接');
-          break;
-
-        case 'build_complete':
-          console.log('收到构建完成通知，刷新列表');
-          // 自动刷新小书签列表
-          loadBookmarklets();
-          break;
-
-        case 'build_start':
-        case 'build_queued':
-          statusEl.style.display = 'block';
-          statusEl.className = 'status loading';
-          statusEl.textContent = data.message;
-          break;
-
-        case 'build_error':
-          console.error('构建失败:', data.message);
-          statusEl.className = 'status error';
-          statusEl.textContent = data.message;
-          break;
-
-        default:
-          console.log('收到未知类型的更新:', data);
-      }
-    }
-
-    /**
-     * 备用方案：定期轮询更新
-     */
-    let pollingInterval = null;
-
-    function startPolling(intervalMs = 5000) {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-
-      console.log('启动定期轮询更新');
-      updateConnectionStatus('connecting', '定期轮询模式');
-
-      pollingInterval = setInterval(() => {
-        loadBookmarklets();
-      }, intervalMs);
-    }
-
-    function stopPolling() {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-      }
-    }
-
-    /**
-     * 清理资源
-     */
-    function cleanup() {
-      if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-      }
-      stopPolling();
-    }
-
-    // 页面卸载时清理资源
-    window.addEventListener('beforeunload', cleanup);
   </script>
 </body>
 
