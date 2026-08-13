@@ -81,6 +81,10 @@ test("管理页面脚本语法和基础无障碍标记有效", async () => {
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
   assert.match(html, /text: bookmarklet\.bookmarkName/);
   assert.match(html, /fetch\('\.\/bookmarklets\.json'/);
+  assert.match(
+    html,
+    /<link rel="icon" href="\.\/favicon\.ico" type="image\/x-icon">/
+  );
   assert.doesNotMatch(html, /EventSource|setInterval|\/api\//);
   assert.match(html, /<meta name="theme-color"/);
   assert.match(html, /class="skip-link" href="#main-content"/);
